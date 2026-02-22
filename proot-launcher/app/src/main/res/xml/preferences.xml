@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Proot Environment -->
+    <PreferenceCategory app:title="@string/cat_proot">
+
+        <EditTextPreference
+            app:key="proot_start_script"
+            app:title="@string/pref_proot_script_title"
+            app:summary="@string/pref_proot_script_summary"
+            app:defaultValue="./start-ubuntu22.sh"
+            app:singleLine="true" />
+
+        <EditTextPreference
+            app:key="proot_start_custom_cmd"
+            app:title="@string/pref_proot_custom_cmd_title"
+            app:summary="@string/pref_proot_custom_cmd_summary"
+            app:defaultValue=""
+            app:singleLine="false" />
+
+    </PreferenceCategory>
+
+    <!-- VNC Server -->
+    <PreferenceCategory app:title="@string/cat_vnc_server">
+
+        <EditTextPreference
+            app:key="vnc_display"
+            app:title="@string/pref_vnc_display_title"
+            app:summary="@string/pref_vnc_display_summary"
+            app:defaultValue=":1"
+            app:singleLine="true" />
+
+        <EditTextPreference
+            app:key="vnc_resolution"
+            app:title="@string/pref_vnc_resolution_title"
+            app:summary="@string/pref_vnc_resolution_summary"
+            app:defaultValue="1920x1080"
+            app:singleLine="true" />
+
+        <EditTextPreference
+            app:key="vnc_start_cmd"
+            app:title="@string/pref_vnc_start_cmd_title"
+            app:summary="@string/pref_vnc_start_cmd_summary"
+            app:defaultValue="vncserver-start"
+            app:singleLine="true" />
+
+        <EditTextPreference
+            app:key="vnc_stop_cmd"
+            app:title="@string/pref_vnc_stop_cmd_title"
+            app:summary="@string/pref_vnc_stop_cmd_summary"
+            app:defaultValue="vncserver-stop"
+            app:singleLine="true" />
+
+    </PreferenceCategory>
+
+    <!-- VNC Viewer -->
+    <PreferenceCategory app:title="@string/cat_vnc_viewer">
+
+        <SwitchPreferenceCompat
+            app:key="auto_connect_vnc"
+            app:title="@string/pref_auto_connect_title"
+            app:summary="@string/pref_auto_connect_summary"
+            app:defaultValue="true" />
+
+        <EditTextPreference
+            app:key="vnc_connection_delay"
+            app:title="@string/pref_vnc_delay_title"
+            app:summary="@string/pref_vnc_delay_summary"
+            app:defaultValue="5"
+            app:singleLine="true" />
+
+        <ListPreference
+            app:key="vnc_viewer_package"
+            app:title="@string/pref_vnc_viewer_title"
+            app:summary="@string/pref_vnc_viewer_summary"
+            app:entries="@array/vnc_viewer_names"
+            app:entryValues="@array/vnc_viewer_packages"
+            app:defaultValue="com.gaurav.avnc" />
+
+    </PreferenceCategory>
+
+    <!-- Advanced -->
+    <PreferenceCategory app:title="@string/cat_advanced">
+
+        <EditTextPreference
+            app:key="pre_start_cmd"
+            app:title="@string/pref_pre_start_title"
+            app:summary="@string/pref_pre_start_summary"
+            app:defaultValue=""
+            app:singleLine="false" />
+
+        <EditTextPreference
+            app:key="post_start_cmd"
+            app:title="@string/pref_post_start_title"
+            app:summary="@string/pref_post_start_summary"
+            app:defaultValue=""
+            app:singleLine="false" />
+
+        <EditTextPreference
+            app:key="custom_env_vars"
+            app:title="@string/pref_env_vars_title"
+            app:summary="@string/pref_env_vars_summary"
+            app:defaultValue=""
+            app:singleLine="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

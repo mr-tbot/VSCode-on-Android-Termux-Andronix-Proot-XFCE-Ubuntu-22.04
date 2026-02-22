@@ -393,6 +393,52 @@ PYEOF
   done
 fi
 
+# ── Section 7b: VSCode settings.json – diffEditor.maxComputationTime=0 ───────
+if [[ "$NO_VSCODE" -eq 0 ]]; then
+  msg "Section 7b — Writing VSCode settings.json (diffEditor.maxComputationTime=0)"
+
+  write_vscode_settings() {
+    local cfg_dir="$1/Code/User"
+    mkdir -p "$cfg_dir"
+    local settings="$cfg_dir/settings.json"
+    if [[ -f "$settings" ]]; then
+      if command -v python3 >/dev/null 2>&1; then
+        python3 - "$settings" <<'PYEOF'
+import sys, json, pathlib
+p = pathlib.Path(sys.argv[1])
+try:
+    data = json.loads(p.read_text())
+except Exception:
+    data = {}
+data["diffEditor.maxComputationTime"] = 0
+p.write_text(json.dumps(data, indent=4) + "\n")
+print(f"    Merged: {p}")
+PYEOF
+      else
+        if ! grep -q 'diffEditor.maxComputationTime' "$settings" 2>/dev/null; then
+          cp "$settings" "${settings}.bak.prootfix" 2>/dev/null || true
+          sed -i 's/}$/,\n    "diffEditor.maxComputationTime": 0\n}/' "$settings" 2>/dev/null || true
+          ok "  Updated diffEditor.maxComputationTime in $settings"
+        else
+          ok "  diffEditor.maxComputationTime already set in $settings"
+        fi
+      fi
+    else
+      printf '{\n    "diffEditor.maxComputationTime": 0\n}\n' \
+        > "$settings"
+      ok "  Created $settings"
+    fi
+  }
+
+  write_vscode_settings "/root/.config"
+
+  for home_dir in /home/*/; do
+    [[ -d "$home_dir" ]] || continue
+    user_cfg="$home_dir/.config"
+    write_vscode_settings "$user_cfg"
+  done
+fi
+
 # ── Section 8: Patch code.desktop (optional) ─────────────────────────────────
 if [[ "$PATCH_DESKTOP" -eq 1 && "$NO_VSCODE" -eq 0 ]]; then
   msg "Section 8 — Patching code.desktop"

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Proot Launcher</string>
+
+    <!-- Main Activity -->
+    <string name="btn_start">▶  Start Proot Env</string>
+    <string name="btn_stop">⏹  Stop Proot Env</string>
+    <string name="btn_vnc_only">🔗  Open VNC Only</string>
+
+    <string name="status_stopped">Stopped</string>
+    <string name="status_running">Running</string>
+    <string name="status_starting">Starting…</string>
+    <string name="status_stopping">Stopping…</string>
+
+    <string name="connection_info_header">Connection Info</string>
+    <string name="vnc_info_format">Display: %1$s\nPort: %2$d\nResolution: %3$s</string>
+    <string name="last_started_format">Last started: %1$s</string>
+
+    <string name="toast_started">Proot environment started</string>
+    <string name="toast_stopped">Proot environment stopped</string>
+
+    <!-- Warnings -->
+    <string name="termux_required_title">Termux Required</string>
+    <string name="termux_required_message">Termux is not installed. Proot Launcher needs Termux to run the Linux environment.\n\nImportant: Install Termux from F-Droid, NOT the Play Store. The Play Store version is outdated.\n\nAfter installing, open Termux and run:\nmkdir -p ~/.termux\necho \"allow-external-apps=true\" >> ~/.termux/termux.properties\n\nThen restart Termux.</string>
+    <string name="open_fdroid">Open F-Droid</string>
+
+    <string name="vnc_required_title">VNC Viewer Required</string>
+    <string name="vnc_required_message">No supported VNC viewer is installed.\n\nWe recommend AVNC:\n• Open source and free\n• Supports auto-connect from this app\n• Available on F-Droid and Play Store\n\nAlternatives: bVNC, MultiVNC, RealVNC Viewer</string>
+    <string name="install_avnc">Install AVNC</string>
+
+    <!-- Welcome / Setup -->
+    <string name="welcome_title">Welcome to Proot Launcher!</string>
+    <string name="welcome_message">This app helps you start and manage your proot Linux development environment with one tap.\n\nBefore using this app, you need:\n1. Termux (from F-Droid)\n2. Ubuntu 22.04 proot (via Andronix)\n3. A VNC viewer (AVNC recommended)\n\nWould you like to see the setup guide?</string>
+    <string name="setup_guide">Setup Guide</string>
+    <string name="later">Later</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="setup_guide_title">Setup Guide</string>
+
+    <!-- Settings Categories -->
+    <string name="cat_proot">Proot Environment</string>
+    <string name="cat_vnc_server">VNC Server</string>
+    <string name="cat_vnc_viewer">VNC Viewer</string>
+    <string name="cat_advanced">Advanced</string>
+
+    <!-- Settings - Proot -->
+    <string name="pref_proot_script_title">Proot start script</string>
+    <string name="pref_proot_script_summary">Path to your proot start script (relative to Termux home)</string>
+    <string name="pref_proot_custom_cmd_title">Custom start command</string>
+    <string name="pref_proot_custom_cmd_summary">Override the entire start command (leave blank to use script path above)</string>
+
+    <!-- Settings - VNC Server -->
+    <string name="pref_vnc_display_title">VNC display</string>
+    <string name="pref_vnc_display_summary">Display number (e.g., :1, :2)</string>
+    <string name="pref_vnc_resolution_title">VNC resolution</string>
+    <string name="pref_vnc_resolution_summary">Screen resolution (e.g., 1920x1080, 1280x720)</string>
+    <string name="pref_vnc_start_cmd_title">VNC start command</string>
+    <string name="pref_vnc_start_cmd_summary">Command to start VNC server inside proot</string>
+    <string name="pref_vnc_stop_cmd_title">VNC stop command</string>
+    <string name="pref_vnc_stop_cmd_summary">Command to stop VNC server inside proot</string>
+
+    <!-- Settings - VNC Viewer -->
+    <string name="pref_auto_connect_title">Auto-connect VNC</string>
+    <string name="pref_auto_connect_summary">Automatically open VNC viewer after starting proot</string>
+    <string name="pref_vnc_delay_title">Connection delay (seconds)</string>
+    <string name="pref_vnc_delay_summary">Wait time before opening VNC viewer (proot needs time to start)</string>
+    <string name="pref_vnc_viewer_title">VNC viewer app</string>
+    <string name="pref_vnc_viewer_summary">Which VNC viewer to launch</string>
+
+    <!-- Settings - Advanced -->
+    <string name="pref_pre_start_title">Pre-start command</string>
+    <string name="pref_pre_start_summary">Run before starting proot (in Termux)</string>
+    <string name="pref_post_start_title">Post-start command</string>
+    <string name="pref_post_start_summary">Run after VNC server starts (in proot)</string>
+    <string name="pref_env_vars_title">Custom environment variables</string>
+    <string name="pref_env_vars_summary">Extra env vars to export (e.g., VAR1=val1 VAR2=val2)</string>
+
+    <!-- Menu -->
+    <string name="action_settings">Settings</string>
+    <string name="action_setup_guide">Setup Guide</string>
+</resources>

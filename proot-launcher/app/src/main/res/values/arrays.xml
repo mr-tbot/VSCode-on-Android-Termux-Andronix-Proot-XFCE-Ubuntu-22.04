@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="vnc_viewer_names">
+        <item>AVNC (recommended)</item>
+        <item>bVNC</item>
+        <item>RealVNC Viewer</item>
+        <item>MultiVNC</item>
+    </string-array>
+
+    <string-array name="vnc_viewer_packages">
+        <item>com.gaurav.avnc</item>
+        <item>com.iiordanov.bVNC</item>
+        <item>com.realvnc.viewer.android</item>
+        <item>com.coboltforge.dontmind.multivnc</item>
+    </string-array>
+</resources>

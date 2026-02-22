@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ProotLauncher" parent="Theme.Material3.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/proot_primary</item>
+        <item name="colorPrimaryDark">@color/proot_primary_dark</item>
+        <item name="colorAccent">@color/proot_accent</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.ProotLauncher.AppBarOverlay" parent="ThemeOverlay.Material3.Dark.ActionBar" />
+    <style name="Theme.ProotLauncher.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
+</resources>
