@@ -413,6 +413,15 @@ if [[ "$NO_VSCODE" -eq 0 && "$NO_APT" -eq 0 ]]; then
   ok "libsecret-1-0 and gnome-keyring present (or already installed)."
 fi
 
+# ── Section 11: ELECTRON_DISABLE_SANDBOX in ~/.bashrc ────────────────────────
+msg "Section 11 — Adding ELECTRON_DISABLE_SANDBOX=1 to ~/.bashrc"
+if ! grep -qF 'ELECTRON_DISABLE_SANDBOX' ~/.bashrc; then
+  echo 'export ELECTRON_DISABLE_SANDBOX=1' >> ~/.bashrc
+  ok "ELECTRON_DISABLE_SANDBOX=1 added to ~/.bashrc"
+else
+  ok "ELECTRON_DISABLE_SANDBOX already present in ~/.bashrc — skipping."
+fi
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 cat <<'EOT'
 
