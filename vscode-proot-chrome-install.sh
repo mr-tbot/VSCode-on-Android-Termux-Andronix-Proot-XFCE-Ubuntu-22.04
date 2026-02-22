@@ -26,6 +26,13 @@
 # PROOT-GENERAL
 # 10) Writes /etc/environment additions that suppress common Electron/
 #     Chromium noise in proot (no GPU, no SUID sandbox, basic keyring).
+# 11) Adds ELECTRON_DISABLE_SANDBOX=1 export to ~/.bashrc.
+#
+# SOURCES.LIST
+#  0) Replaces ftp.*.ubuntu.com mirror URLs with archive.ubuntu.com (more
+#     reliable in proot/container environments where FTP is often blocked).
+#     Also comments out any duplicate deb/deb-src lines, keeping the first
+#     occurrence, to prevent apt warnings about redundant sources.
 #
 # Usage:
 #   sudo bash proot-xfce-chromium-vscode-fix.sh              # recommended
@@ -85,6 +92,42 @@ ok()   { printf '    OK: %s\n' "$*"; }
 warn() { printf '[!] %s\n' "$*" >&2; }
 
 need_root
+
+# ── Section 0: Fix /etc/apt/sources.list ─────────────────────────────────────
+msg "Section 0 — Fixing /etc/apt/sources.list (ftp mirrors → archive, duplicates)"
+
+SOURCES=/etc/apt/sources.list
+if [[ -f "$SOURCES" ]]; then
+  # Backup once
+  [[ ! -f "${SOURCES}.bak.prootfix" ]] && cp -v "$SOURCES" "${SOURCES}.bak.prootfix"
+
+  # 1) Replace ftp.*.ubuntu.com (and bare ftp.ubuntu.com) with archive.ubuntu.com
+  if grep -qE 'ftp[^[:space:]]*\.ubuntu\.com' "$SOURCES"; then
+    sed -i -E 's|ftp[^[:space:]]*\.ubuntu\.com|archive.ubuntu.com|g' "$SOURCES"
+    ok "Replaced ftp mirror URL(s) with archive.ubuntu.com"
+  else
+    ok "No ftp mirror URLs found in $SOURCES – nothing to replace."
+  fi
+
+  # 2) Comment out duplicate deb/deb-src lines, keeping the first occurrence
+  BEFORE=$(grep -cE '^[[:space:]]*deb' "$SOURCES" 2>/dev/null || true)
+  TMP=$(mktemp)
+  awk '
+    /^[[:space:]]*$/  { print; next }
+    /^[[:space:]]*#/  { print; next }
+    !seen[$0]++        { print; next }
+                       { print "# [duplicate removed] " $0 }
+  ' "$SOURCES" > "$TMP" && mv "$TMP" "$SOURCES"
+  AFTER=$(grep -cE '^[[:space:]]*deb' "$SOURCES" 2>/dev/null || true)
+  REMOVED=$(( BEFORE - AFTER ))
+  if [[ "$REMOVED" -gt 0 ]]; then
+    ok "Commented out $REMOVED duplicate deb/deb-src line(s) in $SOURCES"
+  else
+    ok "No duplicate deb/deb-src lines found in $SOURCES."
+  fi
+else
+  warn "$SOURCES not found – skipping sources.list fixes."
+fi
 
 # ── Section 1: Chromium wrapper ───────────────────────────────────────────────
 msg "Section 1 — Chromium proot wrapper"
