@@ -260,6 +260,7 @@ step_install_vscode() {
 exec "${CODE_REAL_TARGET}" \\
   --no-sandbox \\
   --disable-gpu \\
+  --disable-gpu-compositing \\
   --disable-dev-shm-usage \\
   --disable-software-rasterizer \\
   --password-store=basic \\
@@ -285,13 +286,15 @@ try:
 except Exception:
     data = {}
 data["password-store"] = "basic"
+data["disable-hardware-acceleration"] = True
+data["disable-chromium-sandbox"] = True
 data.setdefault("enable-crash-reporter", False)
 p.write_text(json.dumps(data, indent=4) + "\n")
 PYEOF
         ok "Configured: $argv"
       else
         if [[ ! -f "$argv" ]] || ! grep -q '"password-store"' "$argv" 2>/dev/null; then
-          printf '{\n    "password-store": "basic",\n    "enable-crash-reporter": false\n}\n' > "$argv"
+          printf '{\n    "password-store": "basic",\n    "disable-hardware-acceleration": true,\n    "disable-chromium-sandbox": true,\n    "enable-crash-reporter": false\n}\n' > "$argv"
           ok "Created: $argv"
         else
           ok "Already configured: $argv"
@@ -305,8 +308,8 @@ PYEOF
       _write_vscode_argv "$home_dir/.config"
     done
 
-    # VSCode settings.json — diffEditor.maxComputationTime=0
-    msg "Configuring VSCode settings (diffEditor.maxComputationTime=0)..."
+    # VSCode settings.json — proot-friendly defaults
+    msg "Configuring VSCode user settings..."
     _write_vscode_settings() {
       local cfg_dir="$1/Code/User"
       mkdir -p "$cfg_dir"
@@ -319,20 +322,91 @@ try:
     data = json.loads(p.read_text())
 except Exception:
     data = {}
-data["diffEditor.maxComputationTime"] = 0
+defaults = {
+    "github.copilot.nextEditSuggestions.enabled": True,
+    "idf.hasWalkthroughBeenShown": True,
+    "chat.agent.maxRequests": 600,
+    "chat.viewSessions.orientation": "stacked",
+    "files.autoSave": "afterDelay",
+    "diffEditor.maxComputationTime": 0,
+    "github.copilot.chat.tools.autoApprove": True,
+    "github.copilot.chat.commandApproval": False,
+    "chat.tools.autoApprove": True,
+    "github.copilot.chat.terminalChatLocation": "terminal",
+    "chat.commandCenter.enabled": True,
+    "github.copilot.chat.agent.autoApprove": True,
+    "chat.agent.autoApprove": True,
+    "git.useEditorAsCommitInput": true,
+    "github.copilot.chat.anthropic.tools.websearch.enabled": True,
+    "github.copilot.chat.anthropic.tools.websearch.maxUses": 10,
+    "github.copilot.chat.codesearch.enabled": True,
+    "github.copilot.chat.copilotMemory.enabled": True,
+    "github.copilot.chat.githubMcpServer.enabled": True,
+}
+for k, v in defaults.items():
+    data.setdefault(k, v)
 p.write_text(json.dumps(data, indent=4) + "\n")
 PYEOF
         ok "Configured: $settings"
       else
         if [[ ! -f "$settings" ]]; then
-          printf '{\n    "diffEditor.maxComputationTime": 0\n}\n' > "$settings"
+          cat > "$settings" <<'JSONEOF'
+{
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "idf.hasWalkthroughBeenShown": true,
+    "chat.agent.maxRequests": 600,
+    "chat.viewSessions.orientation": "stacked",
+    "files.autoSave": "afterDelay",
+    "diffEditor.maxComputationTime": 0,
+    "github.copilot.chat.tools.autoApprove": true,
+    "github.copilot.chat.commandApproval": false,
+    "chat.tools.autoApprove": true,
+    "github.copilot.chat.terminalChatLocation": "terminal",
+    "chat.commandCenter.enabled": true,
+    "github.copilot.chat.agent.autoApprove": true,
+    "chat.agent.autoApprove": true,
+    "github.copilot.chat.anthropic.tools.websearch.enabled": true,
+    "github.copilot.chat.anthropic.tools.websearch.maxUses": 10,
+    "github.copilot.chat.codesearch.enabled": true,
+    "github.copilot.chat.copilotMemory.enabled": true,
+    "github.copilot.chat.githubMcpServer.enabled": true
+}
+JSONEOF
           ok "Created: $settings"
-        elif ! grep -q 'diffEditor.maxComputationTime' "$settings" 2>/dev/null; then
-          # Simple append before closing brace
-          sed -i 's/}$/,\n    "diffEditor.maxComputationTime": 0\n}/' "$settings" 2>/dev/null || true
-          ok "Updated: $settings"
         else
-          ok "Already configured: $settings"
+          # Fallback: inject missing keys via sed
+          local changed=0
+          for key in \
+            "github.copilot.nextEditSuggestions.enabled\":true" \
+            "idf.hasWalkthroughBeenShown\":true" \
+            "chat.agent.maxRequests\":600" \
+            "chat.viewSessions.orientation\":\"stacked\"" \
+            "files.autoSave\":\"afterDelay\"" \
+            "diffEditor.maxComputationTime\":0" \
+            "github.copilot.chat.tools.autoApprove\":true" \
+            "github.copilot.chat.commandApproval\":false" \
+            "chat.tools.autoApprove\":true" \
+            "github.copilot.chat.terminalChatLocation\":\"terminal\"" \
+            "chat.commandCenter.enabled\":true" \
+            "github.copilot.chat.agent.autoApprove\":true" \
+            "chat.agent.autoApprove\":true" \
+            "github.copilot.chat.anthropic.tools.websearch.enabled\":true" \
+            "github.copilot.chat.anthropic.tools.websearch.maxUses\":10" \
+            "github.copilot.chat.codesearch.enabled\":true" \
+            "github.copilot.chat.copilotMemory.enabled\":true" \
+            "github.copilot.chat.githubMcpServer.enabled\":true"
+          do
+            local search_key="${key%%\"*}"
+            if ! grep -q "$search_key" "$settings" 2>/dev/null; then
+              sed -i "s|}$|,\n    \"${key}\n}|" "$settings" 2>/dev/null || true
+              changed=1
+            fi
+          done
+          if [[ "$changed" -eq 1 ]]; then
+            ok "Updated: $settings"
+          else
+            ok "Already configured: $settings"
+          fi
         fi
       fi
     }
@@ -1016,19 +1090,106 @@ _sdk_git() {
   fi
   ok "GitHub CLI: $(gh --version 2>/dev/null | head -1 || echo 'not installed')"
 
-  # Configure git if not configured
-  if [[ -z "$(git config --global user.name 2>/dev/null)" ]]; then
-    if prompt_yn "Configure git user name and email now?" "y"; then
-      printf "  Git user name: "
-      read -r git_name
-      printf "  Git email: "
+  # ── Enable persistent credential storage ──
+  msg "Configuring Git credential storage..."
+  git config --global credential.helper store
+  ok "credential.helper set to 'store'"
+
+  # ── Configure identity + credentials in one go ──
+  local need_identity=0 need_creds=0
+  [[ -z "$(git config --global user.name 2>/dev/null)" ]] && need_identity=1
+  [[ ! -s "$HOME/.git-credentials" ]] && need_creds=1
+
+  if [[ "$need_identity" -eq 1 || "$need_creds" -eq 1 ]]; then
+    if prompt_yn "Set up Git username, email, and password/token now?" "y"; then
+      # ── Username ──
+      printf "  ${BOLD}Git username:${NC} "
+      read -r git_user
+
+      # ── Email ──
+      printf "  ${BOLD}Git email:${NC} "
       read -r git_email
-      git config --global user.name "$git_name"
+
+      # ── Password / PAT ──
+      printf "  ${BOLD}Git password or personal access token:${NC} "
+      read -rs git_pass
+      echo ""
+
+      # Apply identity
+      git config --global user.name "$git_user"
       git config --global user.email "$git_email"
-      ok "Git configured: $git_name <$git_email>"
+      ok "git config --global user.name  \"$git_user\""
+      ok "git config --global user.email \"$git_email\""
+
+      # Store credentials
+      printf 'https://%s:%s@github.com\n' "$git_user" "$git_pass" > "$HOME/.git-credentials"
+      chmod 600 "$HOME/.git-credentials"
+      ok "Credentials saved to ~/.git-credentials"
+      info "To update later: edit ~/.git-credentials or delete it and re-run this step."
     fi
   else
     ok "Git user: $(git config --global user.name) <$(git config --global user.email)>"
+    ok "Git credentials already stored in ~/.git-credentials"
+  fi
+
+  # ── GitHub SSH key setup ──
+  if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
+    if prompt_yn "Set up GitHub SSH key authentication?" "y"; then
+      # Grab email from git config (just set above, or previously configured)
+      local ssh_email
+      ssh_email="$(git config --global user.email 2>/dev/null)"
+      if [[ -z "$ssh_email" ]]; then
+        printf "  ${BOLD}Email for SSH key:${NC} "
+        read -r ssh_email
+      else
+        info "Using email from git config: $ssh_email"
+      fi
+
+      msg "Generating SSH key (ed25519)..."
+      mkdir -p "$HOME/.ssh"
+      chmod 700 "$HOME/.ssh"
+      ssh-keygen -t ed25519 -C "$ssh_email" -f "$HOME/.ssh/id_ed25519" -N ""
+      ok "SSH key generated: ~/.ssh/id_ed25519"
+
+      # Auto-start ssh-agent in .bashrc
+      if ! grep -qF 'ssh-agent' "$HOME/.bashrc" 2>/dev/null; then
+        cat >> "$HOME/.bashrc" <<'SSHRC'
+
+# Start SSH agent and add key
+eval "$(ssh-agent -s)" > /dev/null 2>&1
+ssh-add ~/.ssh/id_ed25519 2>/dev/null
+SSHRC
+        ok "ssh-agent auto-start added to ~/.bashrc"
+      else
+        ok "ssh-agent already configured in ~/.bashrc"
+      fi
+
+      # Start agent for current session
+      eval "$(ssh-agent -s)" >/dev/null 2>&1
+      ssh-add "$HOME/.ssh/id_ed25519" 2>/dev/null || true
+
+      # Show the public key for the user to copy
+      echo ""
+      divider
+      printf "  ${BOLD}${YELLOW}Copy this public key and add it to GitHub:${NC}\n"
+      printf "  ${CYAN}https://github.com/settings/ssh/new${NC}\n\n"
+      cat "$HOME/.ssh/id_ed25519.pub"
+      echo ""
+      divider
+      info "After adding the key to GitHub, test with: ssh -T git@github.com"
+      pause_continue
+    fi
+  else
+    ok "SSH key already exists: ~/.ssh/id_ed25519"
+    if ! grep -qF 'ssh-agent' "$HOME/.bashrc" 2>/dev/null; then
+      cat >> "$HOME/.bashrc" <<'SSHRC'
+
+# Start SSH agent and add key
+eval "$(ssh-agent -s)" > /dev/null 2>&1
+ssh-add ~/.ssh/id_ed25519 2>/dev/null
+SSHRC
+      ok "ssh-agent auto-start added to ~/.bashrc"
+    fi
   fi
 }
 
@@ -1417,6 +1578,15 @@ step_env_tweaks() {
   # ~/.bashrc
   msg "Updating ~/.bashrc..."
   _add_bashrc_export "ELECTRON_DISABLE_SANDBOX" "1"
+  _add_bashrc_export "VSCODE_KEYRING" "basic"
+
+  # VSCode alias with proot-safe flags
+  if ! grep -qF 'alias code=' ~/.bashrc 2>/dev/null; then
+    echo 'alias code="code --disable-gpu --disable-gpu-compositing --no-sandbox --user-data-dir=\"$HOME/.vscode-data\""' >> ~/.bashrc
+    ok "VSCode alias added to ~/.bashrc"
+  else
+    ok "VSCode alias already present in ~/.bashrc"
+  fi
 
   # XDG directories
   if ! grep -qF 'XDG_CONFIG_HOME' ~/.bashrc 2>/dev/null; then

@@ -393,9 +393,9 @@ PYEOF
   done
 fi
 
-# ── Section 7b: VSCode settings.json – diffEditor.maxComputationTime=0 ───────
+# ── Section 7b: VSCode settings.json – proot-friendly defaults ───────────────
 if [[ "$NO_VSCODE" -eq 0 ]]; then
-  msg "Section 7b — Writing VSCode settings.json (diffEditor.maxComputationTime=0)"
+  msg "Section 7b — Writing VSCode user settings (diffEditor, Copilot)"
 
   write_vscode_settings() {
     local cfg_dir="$1/Code/User"
@@ -411,20 +411,29 @@ try:
 except Exception:
     data = {}
 data["diffEditor.maxComputationTime"] = 0
+data["github.copilot.chat.tools.autoApprove"] = True
 p.write_text(json.dumps(data, indent=4) + "\n")
 print(f"    Merged: {p}")
 PYEOF
       else
+        local changed=0
         if ! grep -q 'diffEditor.maxComputationTime' "$settings" 2>/dev/null; then
           cp "$settings" "${settings}.bak.prootfix" 2>/dev/null || true
           sed -i 's/}$/,\n    "diffEditor.maxComputationTime": 0\n}/' "$settings" 2>/dev/null || true
-          ok "  Updated diffEditor.maxComputationTime in $settings"
+          changed=1
+        fi
+        if ! grep -q 'github.copilot.chat.tools.autoApprove' "$settings" 2>/dev/null; then
+          sed -i 's/}$/,\n    "github.copilot.chat.tools.autoApprove": true\n}/' "$settings" 2>/dev/null || true
+          changed=1
+        fi
+        if [[ "$changed" -eq 1 ]]; then
+          ok "  Updated settings in $settings"
         else
-          ok "  diffEditor.maxComputationTime already set in $settings"
+          ok "  Settings already configured in $settings"
         fi
       fi
     else
-      printf '{\n    "diffEditor.maxComputationTime": 0\n}\n' \
+      printf '{\n    "diffEditor.maxComputationTime": 0,\n    "github.copilot.chat.tools.autoApprove": true\n}\n' \
         > "$settings"
       ok "  Created $settings"
     fi
